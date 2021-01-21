@@ -36,6 +36,8 @@ tasks:
 
   - type: run_job
     entity_label: install_deps
+    cpu: 1
+    memory: 2
     short_summary: Running install dependencies training job.
     long_summary: >-
       Running the job to install dependencies.
