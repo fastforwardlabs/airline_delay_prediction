@@ -11,35 +11,43 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
-cancelled_flights = pd.read_csv("data/all_flight_data_spark.csv")
+cancelled_flights = pd.read_csv("data/preprocessed_flight_data.csv")
 cancelled_flights = cancelled_flights.dropna()
 
+# X = cancelled_flights[['uniquecarrier','flightnum','origin','dest','crsdeptime','crselapsedtime','distance','week','hour']]
+X = cancelled_flights[
+    [
+        "OP_CARRIER",
+        "OP_CARRIER_FL_NUM",
+        "ORIGIN",
+        "DEST",
+        "CRS_DEP_TIME",
+        "CRS_ELAPSED_TIME",
+        "DISTANCE",
+        "WEEK",
+        "HOUR",
+    ]
+]
 
-#X = cancelled_flights[['uniquecarrier','flightnum','origin','dest','crsdeptime','crselapsedtime','distance','week','hour']]
-X = cancelled_flights[['OP_CARRIER','OP_CARRIER_FL_NUM','ORIGIN','DEST','CRS_DEP_TIME','CRS_ELAPSED_TIME','DISTANCE','WEEK','HOUR']]
+y = cancelled_flights[["CANCELLED"]]
 
-y = cancelled_flights[['CANCELLED']]
-
-categorical_cols = ['OP_CARRIER','OP_CARRIER_FL_NUM','ORIGIN','DEST']
+categorical_cols = ["OP_CARRIER", "OP_CARRIER_FL_NUM", "ORIGIN", "DEST"]
 
 ct = ColumnTransformer(
-    [('le', OneHotEncoder(), categorical_cols)],
-    remainder='passthrough'
+    [("le", OneHotEncoder(), categorical_cols)], remainder="passthrough"
 )
 
 X_trans = ct.fit_transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X_trans, y, random_state=42)
 
-xgbclf = xgb.XGBClassifier() 
+xgbclf = xgb.XGBClassifier()
 
-pipe = Pipeline([('scaler', StandardScaler(with_mean=False)),
-                 ('xgbclf', xgbclf)])
+pipe = Pipeline([("scaler", StandardScaler(with_mean=False)), ("xgbclf", xgbclf)])
 
 pipe.fit(X_trans, y)
 
 score = pipe.score(X_trans, y)
 print("train", score)
-dump(pipe,'models/pipe.joblib')
-dump(ct,'models/ct.joblib')
-
+dump(pipe, "models/pipe.joblib")
+dump(ct, "models/ct.joblib")
