@@ -69,7 +69,7 @@ def run_cmd(cmd):
   return output, errors
 
 if os.environ["STORAGE_MODE"] == 'local':
-    !cd data && tar xjvf preprocessed_flight_data.tgz
+    !cd data && tar xzvf preprocessed_flight_data.tgz
 else:
     # Attempt to download the full datasets to cloud storage, if error,
     # set environment variable indicating the use of local storage for project build
@@ -92,7 +92,7 @@ else:
         )
     except RuntimeError as error:
         cml.create_environment_variable({"STORAGE_MODE": "local"})
-        !cd data && tar xjvf preprocessed_flight_data.tgz
+        !cd data && tar xzvf preprocessed_flight_data.tgz
         print(
             "Could not interact with external data store so local project storage will be used. HDFS DFS command failed with the following error:"
         )
