@@ -7,6 +7,13 @@ date: "2020-09-29"
 api_version: 1
 
 environment_variables:
+  STORAGE_MODE:
+    default: local
+    description: >-
+      This variable designates whether the project is built from scratch ('external') or from the preprocessed dataset included
+      in the repo ('local'). If this variable is set to 'external', the user must have access to the external storage configured 
+      on the CML workspace's environment, and the project setup tasks will download, process, and store ~20GB of raw data to the
+      storage location specificed below.
   DATA_LOCATION:
     default: data/flight_data
     description: >-
@@ -18,7 +25,7 @@ environment_variables:
       Name of the Hive database that will be used to create the Hive table used for this prototype.
       This should be a Hive database you have write access to, and which is suitable for non-production data.
   HIVE_TABLE:
-    default: churn_prototype
+    default: flight_prototype
     description: >-
       Name of the Hive table that will be created and populated with the data used for this prototype.
       If the table already exists, the prototype will assume it already contains the data for this prototype.
@@ -61,19 +68,15 @@ tasks:
       Running the job to train models.
 
   - type: create_model
-    name: Create Flight Delay Prediction Model  Endpoint
+    name: Create Flight Delay Prediction Model Endpoint
     entity_label: flight_model
     description: This model api endpoint predicts flight delays
     short_summary: Create the flight delay prediction model api endpoint
     access_key_environment_variable: SHTM_ACCESS_KEY
-    # default_resources:
-    #   cpu: 1
-    #   memory: 2
     default_replication_policy:
       type: fixed
       num_replicas: 1
 
-    # auth_enabled: false
   - type: build_model
     name: Flight Delay Prediction Model API Endpoint
     entity_label: flight_model
