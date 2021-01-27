@@ -81,257 +81,268 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
-if os.environ["STORAGE_MODE"] == "local":
-    sys.exit(
-        "Skipping 1_data_ingest.py because excution is limited to local storage only."
+
+def main():
+
+    spark = (
+        SparkSession.builder.appName("PythonSQL")
+        .config("spark.executor.memory", "8g")
+        .config("spark.executor.cores", "2")
+        .config("spark.driver.memory", "6g")
+        .config("spark.executor.instances", "4")
+        .config("spark.yarn.access.hadoopFileSystems", os.environ["STORAGE"])
+        .getOrCreate()
     )
 
-spark = (
-    SparkSession.builder.appName("PythonSQL")
-    .config("spark.executor.memory", "8g")
-    .config("spark.executor.cores", "2")
-    .config("spark.driver.memory", "6g")
-    .config("spark.executor.instances", "4")
-    .config("spark.yarn.access.hadoopFileSystems", os.environ["STORAGE"])
-    .getOrCreate()
-)
+    # First, lets load in the first dataset
+    # Since we know the data already, we can add schema upfront. This is good practice as Spark will
+    # read *all* the Data if you try infer the schema.
 
-# First, lets load in the first dataset
-# Since we know the data already, we can add schema upfront. This is good practice as Spark will
-# read *all* the Data if you try infer the schema.
-
-set_1_schema = StructType(
-    [
-        StructField("month", DoubleType(), True),
-        StructField("dayofmonth", DoubleType(), True),
-        StructField("dayofweek", DoubleType(), True),
-        StructField("deptime", DoubleType(), True),
-        StructField("crsdeptime", DoubleType(), True),
-        StructField("arrtime", DoubleType(), True),
-        StructField("crsarrtime", DoubleType(), True),
-        StructField("uniquecarrier", StringType(), True),
-        StructField("flightnum", DoubleType(), True),
-        StructField("tailnum", StringType(), True),
-        StructField("actualelapsedtime", DoubleType(), True),
-        StructField("crselapsedtime", DoubleType(), True),
-        StructField("airtime", DoubleType(), True),
-        StructField("arrdelay", DoubleType(), True),
-        StructField("depdelay", DoubleType(), True),
-        StructField("origin", StringType(), True),
-        StructField("dest", StringType(), True),
-        StructField("distance", DoubleType(), True),
-        StructField("taxiin", DoubleType(), True),
-        StructField("taxiout", DoubleType(), True),
-        StructField("cancelled", DoubleType(), True),
-        StructField("cancellationcode", StringType(), True),
-        StructField("diverted", DoubleType(), True),
-        StructField("carrierdelay", DoubleType(), True),
-        StructField("weatherdelay", DoubleType(), True),
-        StructField("nasdelay", DoubleType(), True),
-        StructField("securitydelay", DoubleType(), True),
-        StructField("lateaircraftdelay", DoubleType(), True),
-        StructField("year", DoubleType(), True),
-    ]
-)
-
-path_1 = (
-    f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_1/flight_data_1.csv"
-)
-flights_data_1 = spark.read.csv(path_1, header=True, schema=set_1_schema, sep=",")
-
-# Let's inspect the data
-flights_data_1.show()
-flights_data_1.printSchema()
-
-# Now we can load in the second, fragmented dataset
-set_2_schema = StructType(
-    [
-        StructField("FL_DATE", DateType(), True),
-        StructField("OP_CARRIER", StringType(), True),
-        StructField("OP_CARRIER_FL_NUM", StringType(), True),
-        StructField("ORIGIN", StringType(), True),
-        StructField("DEST", StringType(), True),
-        StructField("CRS_DEP_TIME", StringType(), True),
-        StructField("DEP_TIME", StringType(), True),
-        StructField("DEP_DELAY", DoubleType(), True),
-        StructField("TAXI_OUT", DoubleType(), True),
-        StructField("WHEELS_OFF", StringType(), True),
-        StructField("WHEELS_ON", StringType(), True),
-        StructField("TAXI_IN", DoubleType(), True),
-        StructField("CRS_ARR_TIME", StringType(), True),
-        StructField("ARR_TIME", StringType(), True),
-        StructField("ARR_DELAY", DoubleType(), True),
-        StructField("CANCELLED", DoubleType(), True),
-        StructField("CANCELLATION_CODE", StringType(), True),
-        StructField("DIVERTED", DoubleType(), True),
-        StructField("CRS_ELAPSED_TIME", DoubleType(), True),
-        StructField("ACTUAL_ELAPSED_TIME", DoubleType(), True),
-        StructField("AIR_TIME", DoubleType(), True),
-        StructField("DISTANCE", DoubleType(), True),
-        StructField("CARRIER_DELAY", DoubleType(), True),
-        StructField("WEATHER_DELAY", DoubleType(), True),
-        StructField("NAS_DELAY", DoubleType(), True),
-        StructField("SECURITY_DELAY", DoubleType(), True),
-        StructField("LATE_AIRCRAFT_DELAY", DoubleType(), True),
-    ]
-)
-
-path_2 = f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_2/"
-flights_data_2 = spark.read.csv(
-    path_2, schema=set_2_schema, header=True, sep=",", nullValue="NA"
-)
-flights_data_2.show()
-
-# Now we can clean up the schema of flights_data_1 so it is consistent with flights_data_2,
-# downselect to columns of interest, and then union all the data together
-
-flights_data_1 = flights_data_1.withColumn(
-    "FL_DATE",
-    to_date(
-        concat_ws("-", col("year"), col("month"), col("dayofmonth")), "yyyy.0-MM.0-dd.0"
-    ),
-)
-
-flights_data_1 = (
-    flights_data_1.withColumnRenamed("deptime", "DEP_TIME")
-    .withColumnRenamed("crsdeptime", "CRS_DEP_TIME")
-    .withColumnRenamed("arrtime", "ARR_TIME")
-    .withColumnRenamed("crsarrtime", "CRS_ARR_TIME")
-    .withColumnRenamed("uniquecarrier", "OP_CARRIER")
-    .withColumnRenamed("flightnum", "OP_CARRIER_FL_NUM")
-    .withColumnRenamed("actualelapsedtime", "ACTUAL_ELAPSED_TIME")
-    .withColumnRenamed("crselapsedtime", "CRS_ELAPSED_TIME")
-    .withColumnRenamed("airtime", "AIR_TIME")
-    .withColumnRenamed("arrdelay", "ARR_DELAY")
-    .withColumnRenamed("depdelay", "DEP_DELAY")
-    .withColumnRenamed("origin", "ORIGIN")
-    .withColumnRenamed("dest", "DEST")
-    .withColumnRenamed("distance", "DISTANCE")
-    .withColumnRenamed("taxiin", "TAXI_IN")
-    .withColumnRenamed("taxiout", "TAXI_OUT")
-    .withColumnRenamed("cancelled", "CANCELLED")
-    .withColumnRenamed("cancellationcode", "CANCELLATION_CODE")
-    .withColumnRenamed("diverted", "DIVERTED")
-    .withColumnRenamed("carrierdelay", "CARRIER_DELAY")
-    .withColumnRenamed("weatherdelay", "WEATHER_DELAY")
-    .withColumnRenamed("nasdelay", "NAS_DELAY")
-    .withColumnRenamed("securitydelay", "SECURITY_DELAY")
-    .withColumnRenamed("lateaircraftdelay", "LATE_AIRCRAFT_DELAY")
-)
-
-
-flights_data_1 = flights_data_1.select(
-    [
-        "FL_DATE",
-        "DEP_TIME",
-        "CRS_DEP_TIME",
-        "ARR_TIME",
-        "CRS_ARR_TIME",
-        "OP_CARRIER",
-        "OP_CARRIER_FL_NUM",
-        "ACTUAL_ELAPSED_TIME",
-        "CRS_ELAPSED_TIME",
-        "AIR_TIME",
-        "ARR_DELAY",
-        "DEP_DELAY",
-        "ORIGIN",
-        "DEST",
-        "DISTANCE",
-        "TAXI_IN",
-        "TAXI_OUT",
-        "CANCELLED",
-        "CANCELLATION_CODE",
-        "DIVERTED",
-        "CARRIER_DELAY",
-        "WEATHER_DELAY",
-        "NAS_DELAY",
-        "SECURITY_DELAY",
-        "LATE_AIRCRAFT_DELAY",
-    ]
-)
-
-flights_data_2 = flights_data_2.select(
-    [
-        "FL_DATE",
-        "DEP_TIME",
-        "CRS_DEP_TIME",
-        "ARR_TIME",
-        "CRS_ARR_TIME",
-        "OP_CARRIER",
-        "OP_CARRIER_FL_NUM",
-        "ACTUAL_ELAPSED_TIME",
-        "CRS_ELAPSED_TIME",
-        "AIR_TIME",
-        "ARR_DELAY",
-        "DEP_DELAY",
-        "ORIGIN",
-        "DEST",
-        "DISTANCE",
-        "TAXI_IN",
-        "TAXI_OUT",
-        "CANCELLED",
-        "CANCELLATION_CODE",
-        "DIVERTED",
-        "CARRIER_DELAY",
-        "WEATHER_DELAY",
-        "NAS_DELAY",
-        "SECURITY_DELAY",
-        "LATE_AIRCRAFT_DELAY",
-    ]
-)
-
-flights_data_all = flights_data_1.unionByName(flights_data_2)
-
-# Now we can store the Spark DataFrame as a file in the local CML file system
-# *and* as a table in Hive used by the other parts of the project.
-
-# flights_data.coalesce(1).write.csv(
-#    "file:/home/cdsw/raw/telco-data/",
-#    mode='overwrite',
-#    header=True
-# )
-
-spark.sql("show databases").show()
-spark.sql("show tables in default").show()
-
-# Create the Hive table
-# This is here to create the table in Hive used be the other parts of the project, if it
-# does not already exist.
-
-hive_database = os.environ["HIVE_DATABASE"]
-hive_table = os.environ["HIVE_TABLE"]
-hive_table_fq = hive_database + "." + hive_table
-
-if hive_table not in list(spark.sql("show tables in default").toPandas()["tableName"]):
-    print(f"Creating the {hive_table} table in {hive_database}")
-    flights_data_all.write.format("parquet").mode("overwrite").saveAsTable(
-        f"{hive_table_fq}"
+    set_1_schema = StructType(
+        [
+            StructField("month", DoubleType(), True),
+            StructField("dayofmonth", DoubleType(), True),
+            StructField("dayofweek", DoubleType(), True),
+            StructField("deptime", DoubleType(), True),
+            StructField("crsdeptime", DoubleType(), True),
+            StructField("arrtime", DoubleType(), True),
+            StructField("crsarrtime", DoubleType(), True),
+            StructField("uniquecarrier", StringType(), True),
+            StructField("flightnum", DoubleType(), True),
+            StructField("tailnum", StringType(), True),
+            StructField("actualelapsedtime", DoubleType(), True),
+            StructField("crselapsedtime", DoubleType(), True),
+            StructField("airtime", DoubleType(), True),
+            StructField("arrdelay", DoubleType(), True),
+            StructField("depdelay", DoubleType(), True),
+            StructField("origin", StringType(), True),
+            StructField("dest", StringType(), True),
+            StructField("distance", DoubleType(), True),
+            StructField("taxiin", DoubleType(), True),
+            StructField("taxiout", DoubleType(), True),
+            StructField("cancelled", DoubleType(), True),
+            StructField("cancellationcode", StringType(), True),
+            StructField("diverted", DoubleType(), True),
+            StructField("carrierdelay", DoubleType(), True),
+            StructField("weatherdelay", DoubleType(), True),
+            StructField("nasdelay", DoubleType(), True),
+            StructField("securitydelay", DoubleType(), True),
+            StructField("lateaircraftdelay", DoubleType(), True),
+            StructField("year", DoubleType(), True),
+        ]
     )
 
-# Show the data in the hive table
-spark.sql(f"select * from {hive_table_fq}").show()
+    path_1 = (
+        f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_1/flight_data_1.csv"
+    )
+    flights_data_1 = spark.read.csv(path_1, header=True, schema=set_1_schema, sep=",")
 
-# To get more detailed information about the hive table you can run this:
-spark.sql(f"describe formatted {hive_table_fq}").toPandas()
+    # Let's inspect the data
+    flights_data_1.show()
+    flights_data_1.printSchema()
 
-spark.stop()
-# Other ways to access data
+    # Now we can load in the second, fragmented dataset
+    set_2_schema = StructType(
+        [
+            StructField("FL_DATE", DateType(), True),
+            StructField("OP_CARRIER", StringType(), True),
+            StructField("OP_CARRIER_FL_NUM", StringType(), True),
+            StructField("ORIGIN", StringType(), True),
+            StructField("DEST", StringType(), True),
+            StructField("CRS_DEP_TIME", StringType(), True),
+            StructField("DEP_TIME", StringType(), True),
+            StructField("DEP_DELAY", DoubleType(), True),
+            StructField("TAXI_OUT", DoubleType(), True),
+            StructField("WHEELS_OFF", StringType(), True),
+            StructField("WHEELS_ON", StringType(), True),
+            StructField("TAXI_IN", DoubleType(), True),
+            StructField("CRS_ARR_TIME", StringType(), True),
+            StructField("ARR_TIME", StringType(), True),
+            StructField("ARR_DELAY", DoubleType(), True),
+            StructField("CANCELLED", DoubleType(), True),
+            StructField("CANCELLATION_CODE", StringType(), True),
+            StructField("DIVERTED", DoubleType(), True),
+            StructField("CRS_ELAPSED_TIME", DoubleType(), True),
+            StructField("ACTUAL_ELAPSED_TIME", DoubleType(), True),
+            StructField("AIR_TIME", DoubleType(), True),
+            StructField("DISTANCE", DoubleType(), True),
+            StructField("CARRIER_DELAY", DoubleType(), True),
+            StructField("WEATHER_DELAY", DoubleType(), True),
+            StructField("NAS_DELAY", DoubleType(), True),
+            StructField("SECURITY_DELAY", DoubleType(), True),
+            StructField("LATE_AIRCRAFT_DELAY", DoubleType(), True),
+        ]
+    )
 
-# To access data from other locations, refer to the
-# [CML documentation](https://docs.cloudera.com/machine-learning/cloud/import-data/index.html).
+    path_2 = f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_2/"
+    flights_data_2 = spark.read.csv(
+        path_2, schema=set_2_schema, header=True, sep=",", nullValue="NA"
+    )
+    flights_data_2.show()
 
-# Scheduled Jobs
-#
-# One of the features of CML is the ability to schedule code to run at regular intervals,
-# similar to cron jobs. This is useful for **data pipelines**, **ETL**, and **regular reporting**
-# among other use cases. If new data files are created regularly, e.g. hourly log files, you could
-# schedule a Job to run a data loading script with code like the above.
+    # Now we can clean up the schema of flights_data_1 so it is consistent with flights_data_2,
+    # downselect to columns of interest, and then union all the data together
 
-# > Any script [can be scheduled as a Job](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-job.html).
-# > You can create a Job with specified command line arguments or environment variables.
-# > Jobs can be triggered by the completion of other jobs, forming a
-# > [Pipeline](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-pipeline.html)
-# > You can configure the job to email individuals with an attachment, e.g. a csv report which your
-# > script saves at: `/home/cdsw/job1/output.csv`.
+    flights_data_1 = flights_data_1.withColumn(
+        "FL_DATE",
+        to_date(
+            concat_ws("-", col("year"), col("month"), col("dayofmonth")),
+            "yyyy.0-MM.0-dd.0",
+        ),
+    )
 
-# Try running this script `1_data_ingest.py` for use in such a Job.
+    flights_data_1 = (
+        flights_data_1.withColumnRenamed("deptime", "DEP_TIME")
+        .withColumnRenamed("crsdeptime", "CRS_DEP_TIME")
+        .withColumnRenamed("arrtime", "ARR_TIME")
+        .withColumnRenamed("crsarrtime", "CRS_ARR_TIME")
+        .withColumnRenamed("uniquecarrier", "OP_CARRIER")
+        .withColumnRenamed("flightnum", "OP_CARRIER_FL_NUM")
+        .withColumnRenamed("actualelapsedtime", "ACTUAL_ELAPSED_TIME")
+        .withColumnRenamed("crselapsedtime", "CRS_ELAPSED_TIME")
+        .withColumnRenamed("airtime", "AIR_TIME")
+        .withColumnRenamed("arrdelay", "ARR_DELAY")
+        .withColumnRenamed("depdelay", "DEP_DELAY")
+        .withColumnRenamed("origin", "ORIGIN")
+        .withColumnRenamed("dest", "DEST")
+        .withColumnRenamed("distance", "DISTANCE")
+        .withColumnRenamed("taxiin", "TAXI_IN")
+        .withColumnRenamed("taxiout", "TAXI_OUT")
+        .withColumnRenamed("cancelled", "CANCELLED")
+        .withColumnRenamed("cancellationcode", "CANCELLATION_CODE")
+        .withColumnRenamed("diverted", "DIVERTED")
+        .withColumnRenamed("carrierdelay", "CARRIER_DELAY")
+        .withColumnRenamed("weatherdelay", "WEATHER_DELAY")
+        .withColumnRenamed("nasdelay", "NAS_DELAY")
+        .withColumnRenamed("securitydelay", "SECURITY_DELAY")
+        .withColumnRenamed("lateaircraftdelay", "LATE_AIRCRAFT_DELAY")
+    )
+
+    flights_data_1 = flights_data_1.select(
+        [
+            "FL_DATE",
+            "DEP_TIME",
+            "CRS_DEP_TIME",
+            "ARR_TIME",
+            "CRS_ARR_TIME",
+            "OP_CARRIER",
+            "OP_CARRIER_FL_NUM",
+            "ACTUAL_ELAPSED_TIME",
+            "CRS_ELAPSED_TIME",
+            "AIR_TIME",
+            "ARR_DELAY",
+            "DEP_DELAY",
+            "ORIGIN",
+            "DEST",
+            "DISTANCE",
+            "TAXI_IN",
+            "TAXI_OUT",
+            "CANCELLED",
+            "CANCELLATION_CODE",
+            "DIVERTED",
+            "CARRIER_DELAY",
+            "WEATHER_DELAY",
+            "NAS_DELAY",
+            "SECURITY_DELAY",
+            "LATE_AIRCRAFT_DELAY",
+        ]
+    )
+
+    flights_data_2 = flights_data_2.select(
+        [
+            "FL_DATE",
+            "DEP_TIME",
+            "CRS_DEP_TIME",
+            "ARR_TIME",
+            "CRS_ARR_TIME",
+            "OP_CARRIER",
+            "OP_CARRIER_FL_NUM",
+            "ACTUAL_ELAPSED_TIME",
+            "CRS_ELAPSED_TIME",
+            "AIR_TIME",
+            "ARR_DELAY",
+            "DEP_DELAY",
+            "ORIGIN",
+            "DEST",
+            "DISTANCE",
+            "TAXI_IN",
+            "TAXI_OUT",
+            "CANCELLED",
+            "CANCELLATION_CODE",
+            "DIVERTED",
+            "CARRIER_DELAY",
+            "WEATHER_DELAY",
+            "NAS_DELAY",
+            "SECURITY_DELAY",
+            "LATE_AIRCRAFT_DELAY",
+        ]
+    )
+
+    flights_data_all = flights_data_1.unionByName(flights_data_2)
+
+    # Now we can store the Spark DataFrame as a file in the local CML file system
+    # *and* as a table in Hive used by the other parts of the project.
+
+    # flights_data.coalesce(1).write.csv(
+    #    "file:/home/cdsw/raw/telco-data/",
+    #    mode='overwrite',
+    #    header=True
+    # )
+
+    spark.sql("show databases").show()
+    spark.sql("show tables in default").show()
+
+    # Create the Hive table
+    # This is here to create the table in Hive used be the other parts of the project, if it
+    # does not already exist.
+
+    hive_database = os.environ["HIVE_DATABASE"]
+    hive_table = os.environ["HIVE_TABLE"]
+    hive_table_fq = hive_database + "." + hive_table
+
+    if hive_table not in list(
+        spark.sql("show tables in default").toPandas()["tableName"]
+    ):
+        print(f"Creating the {hive_table} table in {hive_database}")
+        flights_data_all.write.format("parquet").mode("overwrite").saveAsTable(
+            f"{hive_table_fq}"
+        )
+
+    # Show the data in the hive table
+    spark.sql(f"select * from {hive_table_fq}").show()
+
+    # To get more detailed information about the hive table you can run this:
+    spark.sql(f"describe formatted {hive_table_fq}").toPandas()
+
+    spark.stop()
+    # Other ways to access data
+
+    # To access data from other locations, refer to the
+    # [CML documentation](https://docs.cloudera.com/machine-learning/cloud/import-data/index.html).
+
+    # Scheduled Jobs
+    #
+    # One of the features of CML is the ability to schedule code to run at regular intervals,
+    # similar to cron jobs. This is useful for **data pipelines**, **ETL**, and **regular reporting**
+    # among other use cases. If new data files are created regularly, e.g. hourly log files, you could
+    # schedule a Job to run a data loading script with code like the above.
+
+    # > Any script [can be scheduled as a Job](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-job.html).
+    # > You can create a Job with specified command line arguments or environment variables.
+    # > Jobs can be triggered by the completion of other jobs, forming a
+    # > [Pipeline](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-pipeline.html)
+    # > You can configure the job to email individuals with an attachment, e.g. a csv report which your
+    # > script saves at: `/home/cdsw/job1/output.csv`.
+
+    # Try running this script `1_data_ingest.py` for use in such a Job.
+
+
+if __name__ == "__main__":
+
+    if os.environ["STORAGE_MODE"] == "external":
+        main()
+    else:
+        print(
+            "Skipping 1_data_ingest.py because excution is limited to local storage only."
+        )
+        pass
