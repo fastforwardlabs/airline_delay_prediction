@@ -4,6 +4,7 @@
 # project to be used for modeling in the 5_model_train.py
 
 import os
+import sys
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
