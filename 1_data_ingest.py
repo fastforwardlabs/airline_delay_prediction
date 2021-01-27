@@ -314,6 +314,7 @@ spark.sql(f"select * from {hive_table_fq}").show()
 # To get more detailed information about the hive table you can run this:
 spark.sql(f"describe formatted {hive_table_fq}").toPandas()
 
+spark.stop()
 # Other ways to access data
 
 # To access data from other locations, refer to the
