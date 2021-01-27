@@ -50,6 +50,42 @@ tasks:
       Running the job to install dependencies.
 
   - type: create_job
+    name: Ingest data
+    entity_label: ingest_data
+    script: 1_data_ingest.py
+    arguments: None
+    short_summary: Job to ingest raw data files
+    long_summary: >-
+      This script will only run if STORAGE_MODE is set to external
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+    kernel: python3
+
+  - type: run_job
+    entity_label: ingest_data
+    cpu: 1
+    memory: 2
+    short_summary: Running job to ingest raw data files
+
+  - type: create_job
+    name: Preprocess data
+    entity_label: preprocess_data
+    script: 3_data_processing.py
+    arguments: None
+    short_summary: Job to process raw data files
+    long_summary: >-
+      This script will only run if STORAGE_MODE is set to external
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+    kernel: python3
+
+  - type: run_job
+    entity_label: preprocess_data
+    cpu: 1
+    memory: 2
+    short_summary: Running job to process raw data files
+
+  - type: create_job
     name: Train Flight Delay Prediction Model
     entity_label: train_model
     script: 5_model_train.py
