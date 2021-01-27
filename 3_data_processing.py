@@ -28,8 +28,6 @@ def main():
     hive_table_fq = hive_database + "." + hive_table
 
     flight_df = spark.sql(f"select * from {hive_table_fq}")
-
-    flight_df.persist()
     flight_df.printSchema()
 
     print(f"There are {flight_df.count()} records in {hive_table_fq}.")
@@ -45,7 +43,6 @@ def main():
 
     all_flight_data = cancelled_flights.union(sample_normal_flights)
     all_flight_data.persist()
-    # all_flight_data = all_flight_data.withColumn("date",to_date(concat_ws("-","year","month","dayofmonth"))).withColumn("week",weekofyear("date"))
 
     all_flight_data = all_flight_data.withColumn(
         "HOUR",

@@ -81,8 +81,8 @@ tasks:
 
   - type: run_job
     entity_label: preprocess_data
-    cpu: 1
-    memory: 2
+    cpu: 4
+    memory: 12
     short_summary: Running job to process raw data files
 
   - type: create_job
