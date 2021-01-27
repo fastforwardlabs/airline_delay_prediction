@@ -49,6 +49,6 @@ pipe.fit(X_trans, y)
 score = pipe.score(X_trans, y)
 print("train", score)
 
-os.makedir("models/")
+os.mkdir("models/")
 dump(pipe, "models/pipe.joblib")
 dump(ct, "models/ct.joblib")
