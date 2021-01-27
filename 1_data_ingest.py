@@ -64,16 +64,27 @@
 # This was done for you when you ran `0_bootstrap.py`, so the following code is set up to run as is.
 # It begins with imports and creating a `SparkSession`.
 
+
+# The following data ingestion script uses Spark to read in two large datasets from external storage,
+# cleans and unions them together into one cohesive dataset. This script accesses data that was copied
+# to external storage in 0_bootstrap.py and is only executed if the project is run with STORAGE_MODE=='external'.
+#
+# The two datasets are:
+#     1. set_1/flight_data_1.csv - one large .csv file (~8GB) of historical airline delay data for years
+#        prior to 2009.
+#     2. set_2/* - 10 separate .csv files (~8GB in total) of airline delay data corresponding to years 2009 - 2018
+
+
 import os
 import sys
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
-#    .config("spark.dynamicAllocation.enabled","true")\
-#    .config("spark.shuffle.service.enabled","true")\
-
-storage = os.environ["STORAGE"]
+if os.environ["STORAGE_MODE"] == "local":
+    sys.exit(
+        "Skipping 1_data_ingest.py because excution is limited to local storage only."
+    )
 
 spark = (
     SparkSession.builder.appName("PythonSQL")
@@ -81,28 +92,14 @@ spark = (
     .config("spark.executor.cores", "2")
     .config("spark.driver.memory", "6g")
     .config("spark.executor.instances", "4")
-    .config("spark.yarn.access.hadoopFileSystems", storage)
+    .config("spark.yarn.access.hadoopFileSystems", os.environ["STORAGE"])
     .getOrCreate()
 )
 
-# **Note:**
-# Our file isn't big, so running it in Spark local mode is fine but you can add the following config
-# if you want to run Spark on the kubernetes cluster
-#
-# > .config("spark.yarn.access.hadoopFileSystems",os.getenv['STORAGE'])\
-#
-# and remove `.master("local[*]")\`
-#
-
+# First, lets load in the first dataset
 # Since we know the data already, we can add schema upfront. This is good practice as Spark will
 # read *all* the Data if you try infer the schema.
 
-#!hdfs dfs -copyFromLocal /home/cdsw/data/all_flight_data.csv $STORAGE/datalake/data/flights-external/all_flight_data.csv
-# ```
-# month,dayofmonth,dayofweek,deptime,crsdeptime,arrtime,crsarrtime,uniquecarrier,flightnum,tailnum,actualelapsedtime,crselapsedtime,airtime,arrdelay,depdelay,origin,dest,distance,taxiin,taxiout,cancelled,cancellationcode,diverted,carrierdelay,weatherdelay,nasdelay,securitydelay,lateaircraftdelay,year
-# 12,8,1,1123,1124,1559,1550,NW,921,N240NW,516,506,493,9,-1,MSP,HNL,3972,5,18,0,"",0,0,0,0,0,0,2003
-# 12,7,7,1124,1124,1550,1550,NW,921,N229NW,506,506,482,0,0,MSP,HNL,3972,3,21,0,"",0,0,0,0,0,0,2003
-# ```
 set_1_schema = StructType(
     [
         StructField("month", DoubleType(), True),
@@ -137,32 +134,16 @@ set_1_schema = StructType(
     ]
 )
 
-# Now we can read in the dataset 1 into Spark
-storage = os.environ["STORAGE"]
-data_location = os.environ["DATA_LOCATION"]
-hive_database = os.environ["HIVE_DATABASE"]
-hive_table = os.environ["HIVE_TABLE"]
-hive_table_fq = hive_database + "." + hive_table
-set_1_name = "flight_data_1.csv"
-
-if os.environ["STORAGE_MODE"] == "external":
-    path_1 = f"{storage}/{data_location}/set_1/{set_1_name}"
-else:
-    path_1 = "/home/cdsw/data/{set_1_name}"
-
+path_1 = (
+    f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_1/flight_data_1.csv"
+)
 flights_data_1 = spark.read.csv(path_1, header=True, schema=set_1_schema, sep=",")
 
-
-# ...and inspect the data.
+# Let's inspect the data
 flights_data_1.show()
 flights_data_1.printSchema()
 
-# ```
-# FL_DATE,OP_CARRIER,OP_CARRIER_FL_NUM,ORIGIN,DEST,CRS_DEP_TIME,DEP_TIME,DEP_DELAY,TAXI_OUT,WHEELS_OFF,WHEELS_ON,TAXI_IN,CRS_ARR_TIME,ARR_TIME,ARR_DELAY,CANCELLED,CANCELLATION_CODE,DIVERTED,CRS_ELAPSED_TIME,ACTUAL_ELAPSED_TIME,AIR_TIME,DISTANCE,CARRIER_DELAY,WEATHER_DELAY,NAS_DELAY,SECURITY_DELAY,LATE_AIRCRAFT_DELAY,Unnamed: 27
-# 2009-01-01,XE,1204,DCA,EWR,1100,1058.0,-2.0,18.0,1116.0,1158.0,8.0,1202,1206.0,4.0,0.0,,0.0,62.0,68.0,42.0,199.0,,,,,,
-# 2009-01-01,XE,1206,EWR,IAD,1510,1509.0,-1.0,28.0,1537.0,1620.0,4.0,1632,1624.0,-8.0,0.0,,0.0,82.0,75.0,43.0,213.0,,,,,,
-# ```
-
+# Now we can load in the second, fragmented dataset
 set_2_schema = StructType(
     [
         StructField("FL_DATE", DateType(), True),
@@ -195,16 +176,14 @@ set_2_schema = StructType(
     ]
 )
 
-
+path_2 = f"{os.environ['STORAGE']}/{os.environ['DATA_LOCATION']}/set_2/"
 flights_data_2 = spark.read.csv(
-    "{}/datalake/data/flight_data/set_2/".format(storage),
-    schema=set_2_schema,
-    header=True,
-    sep=",",
-    nullValue="NA",
+    path_2, schema=set_2_schema, header=True, sep=",", nullValue="NA"
 )
-
 flights_data_2.show()
+
+# Now we can clean up the schema of flights_data_1 so it is consistent with flights_data_2,
+# downselect to columns of interest, and then union all the data together
 
 flights_data_1 = flights_data_1.withColumn(
     "FL_DATE",
@@ -270,6 +249,7 @@ flights_data_1 = flights_data_1.select(
         "LATE_AIRCRAFT_DELAY",
     ]
 )
+
 flights_data_2 = flights_data_2.select(
     [
         "FL_DATE",
@@ -312,26 +292,27 @@ flights_data_all = flights_data_1.unionByName(flights_data_2)
 # )
 
 spark.sql("show databases").show()
-
 spark.sql("show tables in default").show()
 
 # Create the Hive table
 # This is here to create the table in Hive used be the other parts of the project, if it
 # does not already exist.
 
-if "flights_data_all" not in list(
-    spark.sql("show tables in default").toPandas()["tableName"]
-):
-    print("creating the flights_data_all database")
+hive_database = os.environ["HIVE_DATABASE"]
+hive_table = os.environ["HIVE_TABLE"]
+hive_table_fq = hive_database + "." + hive_table
+
+if hive_table not in list(spark.sql("show tables in default").toPandas()["tableName"]):
+    print(f"Creating the {hive_table} table in {hive_database}")
     flights_data_all.write.format("parquet").mode("overwrite").saveAsTable(
-        "default.flights_data_all"
+        f"{hive_table_fq}"
     )
 
 # Show the data in the hive table
-spark.sql("select * from default.flights_data_all").show()
+spark.sql(f"select * from {hive_table_fq}").show()
 
 # To get more detailed information about the hive table you can run this:
-spark.sql("describe formatted default.flights_data_all").toPandas()
+spark.sql(f"describe formatted {hive_table_fq}").toPandas()
 
 # Other ways to access data
 
@@ -353,38 +334,3 @@ spark.sql("describe formatted default.flights_data_all").toPandas()
 # > script saves at: `/home/cdsw/job1/output.csv`.
 
 # Try running this script `1_data_ingest.py` for use in such a Job.
-
-
-## Hive 3 code
-# from __future__ import print_function
-# import os
-# import sys
-# from pyspark.sql import SparkSession
-# from pyspark.sql.types import Row, StructField, StructType, StringType, IntegerType
-# from pyspark_llap.sql.session import HiveWarehouseSession
-# storage=os.getenv("STORAGE")
-# spark = SparkSession\
-#     .builder\
-#     .appName("CDW-CML-JDBC-Integration")\
-#     .config("spark.executor.memory","8g")\
-#     .config("spark.executor.cores","4")\
-#     .config("spark.driver.memory","6g")\
-#     .config("spark.security.credentials.hiveserver2.enabled","false")\
-#     .config("spark.datasource.hive.warehouse.read.via.llap","false")\
-#     .config("spark.datasource.hive.warehouse.read.jdbc.mode", "client")\
-#     .config("spark.yarn.access.hadoopFileSystems",s3_bucket)\
-#     .config("spark.hadoop.yarn.resourcemanager.principal",os.getenv("HADOOP_USER_NAME"))\
-#     .getOrCreate()
-# hive = HiveWarehouseSession.session(spark).build()
-# hive.showDatabases().show()
-# hive.sql("SHOW databases").show()
-# hive.sql("select * from airline_ontime_parquet.flights limit 10").show()
-
-# query_string = """
-# create external table airline_ontime_parquet.flights_external
-# STORED AS parquet
-# LOCATION {}/datalake/warehouse/tablespace/external/hive/flights'
-# AS SELECT * FROM airline_ontime_parquet.flights
-# """
-# .format(storage)
-# hive.sql(query_string)
