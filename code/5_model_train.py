@@ -61,7 +61,6 @@ cancelled_flights = cancelled_flights.dropna()
 X = cancelled_flights[
     [
         "OP_CARRIER",
-        "OP_CARRIER_FL_NUM",
         "ORIGIN",
         "DEST",
         "CRS_DEP_TIME",
@@ -74,7 +73,7 @@ X = cancelled_flights[
 
 y = cancelled_flights[["CANCELLED"]]
 
-categorical_cols = ["OP_CARRIER", "OP_CARRIER_FL_NUM", "ORIGIN", "DEST"]
+categorical_cols = ["OP_CARRIER", "ORIGIN", "DEST"]
 ct = ColumnTransformer(
     [("le", OneHotEncoder(), categorical_cols)], remainder="passthrough"
 )
