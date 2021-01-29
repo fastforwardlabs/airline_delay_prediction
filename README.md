@@ -34,7 +34,7 @@ By following the notebooks, scripts, and documentation in the `code` directory, 
 - Application hosting for deploying frontend ML applications
 - Model operations including model governance and tracking of mode performance metrics
 
-We will focus our attention on working within CML, using all it has to offer, while glossing over the details that are simply standard data science, and in particular pay special attention to the data ingestion and preparation needed at scale with Spark.
+We will focus our attention on working within CML, using all it has to offer, while glossing over the details that are simply standard data science, and in particular, pay special attention to data ingestion and processing at scale with Spark.
 
 ## Deploying on CML
 

@@ -22,7 +22,7 @@ At the top of the page click **Cells > Run All**.
 
 ### 3 - Data Processing
 
-Open `3_data_processing.py` in a Workbench session: Python3, 1 CPU, 2 GB. Run the file.
+Open `3_data_processing.py` in a Workbench session: Python3, 4 CPU, 12 GB. Run the file.
 
 ### 4 - Model Build
 
