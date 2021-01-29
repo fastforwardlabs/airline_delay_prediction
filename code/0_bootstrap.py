@@ -144,16 +144,3 @@ else:
             "Could not interact with external data store so local project storage will be used. HDFS DFS command failed with the following error:"
         )
         print(error)
-
-# Create the YAML file for tracking model lineage
-yaml_text = \
-    f"""Flight Delay Prediction Model Endpoint":
-        hive_table_qualified_names:                                             # this is a predefined key to link to training data
-            - "{os.environ["HIVE_DATABASE"]}.{os.environ["HIVE_TABLE"]}@cm"     # the qualifiedName of the hive_table object representing                
-        metadata:                                                               # this is a predefined key for additional metadata
-            query: "select * from historical_data"                              # suggested use case: query used to extract training data
-            training_file: "code/5_model_train.py"                              # suggested use case: training file used
-    """
-
-with open('lineage.yml', 'w') as lineage:
-    lineage.write(yaml_text)
