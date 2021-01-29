@@ -1,3 +1,45 @@
+<!--
+* ****************************************************************************
+*
+* CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
+* (C) Cloudera, Inc. 2021
+* All rights reserved.
+*
+* Applicable Open Source License: Apache 2.0
+*
+* NOTE: Cloudera open source products are modular software products
+* made up of hundreds of individual components, each of which was
+* individually copyrighted. Each Cloudera open source product is a
+* collective work under U.S. Copyright Law. Your license to use the
+* collective work is as provided in your written agreement with
+* Cloudera. Used apart from the collective work, this file is
+* licensed for your use pursuant to the open source license
+* identified above.
+*
+* This code is provided to you pursuant a written agreement with
+* (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+* this code. If you do not have a written agreement with Cloudera nor
+* with an authorized and properly licensed third party, you do not
+* have any rights to access nor to use this code.
+*
+* Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
+* contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
+* KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+* WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+* IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+* FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+* AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+* ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
+* OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
+* CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+* RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
+* BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
+* DATA.
+*
+* ***************************************************************************
+-->
+
 <!DOCTYPE html>
 
 <head>
@@ -20,88 +62,119 @@
             line-height: 2em;
         }
 
-        .fld{border: 1px dotted #ccc; background: white; font-family: monospace; padding: 10px 20px; font-size: 18px; margin: 5px 5px 5px 0; color: red;}
-        .fld:focus { background-color:lightgray; outline: none;}
-        .btn{border: 1px dotted #ccc; background: white; font-family: monospace; padding: 10px 20px; font-size: 18px; margin: 5px 5px 5px 0; color: black;}
-        .btn:hover { background-color:lightgray; outline: none;}
-        label { display: inline-block; width: 150px; text-align: right;}
-      
-      
+        .fld {
+            border: 1px dotted #ccc;
+            background: white;
+            font-family: monospace;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px 5px 5px 0;
+            color: red;
+        }
+
+        .fld:focus {
+            background-color: lightgray;
+            outline: none;
+        }
+
+        .btn {
+            border: 1px dotted #ccc;
+            background: white;
+            font-family: monospace;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px 5px 5px 0;
+            color: black;
+        }
+
+        .btn:hover {
+            background-color: lightgray;
+            outline: none;
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+        }
     </style>
 </head>
 
 <body>
     <h1>Cancelled Flight Prediction</h1>
-        <div class="bigger">Flight Info</div>
-  
-        <div class="frm">
-            <label for="ca">Carrier:</label> <input class="fld" type="text" value="US" id="ca"><br>
-            <label for="fn">FlightNum:</label> <input class="fld" type="text" value="2040" id="fn"><br>
-            <label for="or">Origin:</label> <input class="fld" type="text" value="DCA" id="or"><br>
-            <label for="de">Destination:</label> <input class="fld" type="text" value="BOS" id="de"><br>
-            <label for="dt">Departure Time:</label> <input class="fld" type="text" value="1630" id="dt"><br>
-            <label for="fd">Flight Duration:</label> <input class="fld" type="text" value="81" id="fd"><br>
-            <label for="di">Distance:</label> <input class="fld" type="text" value="399" id="di"><br>
-            <label for="we">Week:</label> <input class="fld" type="text" value="16" id="we"><br>
-            <label for="hr">Hour:</label> <input class="fld" type="text" value="16" id="hr"><br>
-          <input type="submit" class="btn" value="Will it be cancelled?" onclick="go_fetch()"  style="float:left;"></input><div class="bigger" id='pred_value'>Predicted Value: </div>
-        </div>
-  
-        
+    <div class="bigger">Flight Info</div>
+
+    <div class="frm">
+        <label for="ca">Carrier:</label> <input class="fld" type="text" value="US" id="ca"><br>
+        <label for="fn">FlightNum:</label> <input class="fld" type="text" value="2040" id="fn"><br>
+        <label for="or">Origin:</label> <input class="fld" type="text" value="DCA" id="or"><br>
+        <label for="de">Destination:</label> <input class="fld" type="text" value="BOS" id="de"><br>
+        <label for="dt">Departure Time:</label> <input class="fld" type="text" value="1630" id="dt"><br>
+        <label for="fd">Flight Duration:</label> <input class="fld" type="text" value="81" id="fd"><br>
+        <label for="di">Distance:</label> <input class="fld" type="text" value="399" id="di"><br>
+        <label for="we">Week:</label> <input class="fld" type="text" value="16" id="we"><br>
+        <label for="hr">Hour:</label> <input class="fld" type="text" value="16" id="hr"><br>
+        <input type="submit" class="btn" value="Will it be cancelled?" onclick="go_fetch()" style="float:left;"></input>
+        <div class="bigger" id='pred_value'>Predicted Value: </div>
+    </div>
 
 
-        
+
+
+
     </div>
     <script>
 
-        var url = window.location.origin.substr(0,window.location.origin.indexOf(":")+1) + "//" + "modelservice." + window.location.origin.substr(window.location.origin.indexOf(".")+1) + '/model'
+        var url = window.location.origin.substr(0, window.location.origin.indexOf(":") + 1) + "//" + "modelservice." + window.location.origin.substr(window.location.origin.indexOf(".") + 1) + '/model'
 
-        function get_key(){
+        function get_key() {
             fetch('/getkey')
                 .then(
-                    function(response) {
+                    function (response) {
                         if (response.status !== 200) {
                             console.log('Looks like there was a problem. Status Code: ' +
-                            response.status);
+                                response.status);
                             return;
                         }
 
                         // Examine the text in the response
-                        response.json().then(function(data) {
+                        response.json().then(function (data) {
                             console.log("api key. is", data)
-                            api_key = data.api_key 
-                            
+                            api_key = data.api_key
+
                         });
                     }
                 )
-                .catch(function(err) {
+                .catch(function (err) {
                     console.log('Fetch Error :-S', err);
                 });
         }
         get_key()
-        
+
         function go_fetch() {
             var post_data = {
-                accessKey:api_key,
-                request: { feature : d3.select('#ca').property("value")+","+
-                          d3.select('#fn').property("value")+","+
-                          d3.select('#or').property("value")+","+
-                          d3.select('#de').property("value")+","+
-                          d3.select('#dt').property("value")+","+
-                          d3.select('#fd').property("value")+","+
-                          d3.select('#di').property("value")+","+
-                          d3.select('#we').property("value")+","+
-                          d3.select('#hr').property("value") } 
+                accessKey: api_key,
+                request: {
+                    feature: d3.select('#ca').property("value") + "," +
+                        d3.select('#fn').property("value") + "," +
+                        d3.select('#or').property("value") + "," +
+                        d3.select('#de').property("value") + "," +
+                        d3.select('#dt').property("value") + "," +
+                        d3.select('#fd').property("value") + "," +
+                        d3.select('#di').property("value") + "," +
+                        d3.select('#we').property("value") + "," +
+                        d3.select('#hr').property("value")
+                }
             };
 
             fetch(url, {
-                    method: 'POST', // or 'PUT'
-                    body: JSON.stringify(post_data), // data can be `string` or {object}!
-                    headers: {
-                        'Content-Type': 'application/json',
-                        //'Authorization' : 'Bearer ' + model_api_key                        
-                    }
-                })
+                method: 'POST', // or 'PUT'
+                body: JSON.stringify(post_data), // data can be `string` or {object}!
+                headers: {
+                    'Content-Type': 'application/json',
+                    //'Authorization' : 'Bearer ' + model_api_key                        
+                }
+            })
                 .then(res => res.json())
                 .then(response => d3.select("#pred_value").text("Predicted Value: " + (response.response.prediction.prediction == 0 ? "Not Cancelled" : "Cancelled")))
                 .catch(error => console.error('Error:', error));
