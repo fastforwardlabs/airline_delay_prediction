@@ -34,7 +34,7 @@ tasks:
   - type: create_job
     name: Install dependencies
     entity_label: install_deps
-    script: 0_bootstrap.py
+    script: code/0_bootstrap.py
     arguments: None
     short_summary: Job to install dependencies and download training data.
     environment:
@@ -52,7 +52,7 @@ tasks:
   - type: create_job
     name: Ingest data
     entity_label: ingest_data
-    script: 1_data_ingest.py
+    script: code/1_data_ingest.py
     arguments: None
     short_summary: Job to ingest raw data files
     long_summary: >-
@@ -70,7 +70,7 @@ tasks:
   - type: create_job
     name: Preprocess data
     entity_label: preprocess_data
-    script: 3_data_processing.py
+    script: code/3_data_processing.py
     arguments: None
     short_summary: Job to process raw data files
     long_summary: >-
@@ -88,7 +88,7 @@ tasks:
   - type: create_job
     name: Train Flight Delay Prediction Model
     entity_label: train_model
-    script: 5_model_train.py
+    script: code/5_model_train.py
     arguments: None
     short_summary: Job to train model.
     environment:
@@ -120,7 +120,7 @@ tasks:
     examples:
       - request: ""
         response: ""
-    target_file_path: 6_model_serve.py
+    target_file_path: code/6_model_serve.py
     target_function_name: predict_cancelled
     kernel: python3
     environment_variables:
@@ -137,7 +137,7 @@ tasks:
   - type: start_application
     name: Application to serve flight prediction front end app UI
     subdomain: churn
-    script: 7_application.py
+    script: code/7_application.py
     environment_variables:
       TASK_TYPE: START_APPLICATION
     kernel: python3
