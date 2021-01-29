@@ -24,8 +24,6 @@ At the top of the page click **Cells > Run All**.
 
 Open `3_data_processing.py` in a Workbench session: Python3, 4 CPU, 12 GB. Run the file.
 
-### 4 - Model Build
-
 ### 5 - Model Train
 
 If you want to train a new model, use the **[Jobs](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-job.html)** feature for ad-hoc, recurring, or dependent jobs to run specific scripts. To run the model training process as a job, create a new job by going to the Project window and clicking _Jobs > New Job_ and entering the following settings:
