@@ -22,6 +22,7 @@ The project is organized with the following folder structure:
 ├── models/         # Directory to hold trained models
 ├── cdsw-build.sh   # Shell script used to build environment for experiments and models
 ├── README.md
+├── LICENSE.txt
 └── requirements.txt
 ```
 
@@ -32,7 +33,6 @@ By following the notebooks, scripts, and documentation in the `code` directory, 
 - Streamlined model development
 - Point-and-click model deployment to a RESTful API endpoint
 - Application hosting for deploying frontend ML applications
-- Model operations including model governance and tracking of mode performance metrics
 
 We will focus our attention on working within CML, using all it has to offer, while glossing over the details that are simply standard data science, and in particular, pay special attention to data ingestion and processing at scale with Spark.
 
