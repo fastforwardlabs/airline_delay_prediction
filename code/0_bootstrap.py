@@ -87,7 +87,7 @@ except:
     os.environ["STORAGE"] = storage
 
 # define a function to run commands on HDFS
-def run_cmd(cmd):
+def run_cmd(cmd, raise_err=True):
 
     """
     Run Linux commands using Python's subprocess module
@@ -99,12 +99,16 @@ def run_cmd(cmd):
     """
     print("Running system command: {0}".format(cmd))
 
-    proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.run(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
 
-    if proc.returncode != 0:
+    if proc.returncode != 0 and raise_err == True:
         raise RuntimeError(
-          "Error running command: {}. Return code: {}, Output: {}, Error: {}".format(cmd, proc.returncode, proc.stdout, proc.stderr)
-      )
+            "Error running command: {}. Return code: {}, Output: {}, Error: {}".format(
+                cmd, proc.returncode, proc.stdout, proc.stderr
+            )
+        )
 
     return proc
 
@@ -112,14 +116,18 @@ def run_cmd(cmd):
 if os.environ["STORAGE_MODE"] == "local":
     !cd data && tar xzvf preprocessed_flight_data.tgz
 else:
-    # Check if data already exists in external storage, if not, attempt to download the full 
-    # datasets to cloud storage, if error, set environment variable indicating the use of local 
+    # Check if data already exists in external storage, if not, attempt to download the full
+    # datasets to cloud storage, if error, set environment variable indicating the use of local
     # storage for project build
     try:
         dataset_1_check = run_cmd(
-            f'hdfs dfs -test -f {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/set_1/flight_data_1.csv'
+            f'hdfs dfs -test -f {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/set_1/flight_data_1.csv',
+            raise_err=False,
         )
-        dataset_2_check = run_cmd(f'hdfs dfs -test -f {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/set_2/2018.csv')
+        dataset_2_check = run_cmd(
+            f'hdfs dfs -test -f {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/set_2/2018.csv',
+            raise_err=False,
+        )
 
         if dataset_1_check.returncode != 0:
             run_cmd(
