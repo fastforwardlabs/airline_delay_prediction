@@ -1,2 +1,2 @@
-#Rscript install.r
+#!/bin/bash
 pip3 install -r requirements.txt
