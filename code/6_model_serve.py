@@ -41,6 +41,7 @@
 import numpy as np
 import pandas as pd
 import cdsw
+import json
 from joblib import dump, load
 
 # args = {"feature" : "US,DCA,BOS,1,16"}
@@ -74,5 +75,8 @@ def predict_cancelled(args):
     cdsw.track_metric("input_data", args)
     cdsw.track_metric("prediction", int(prediction))
     cdsw.track_metric("proba", proba)
+    
+    response = {"prediction": int(prediction), "proba": str(proba)}
 
-    return {"prediction": int(prediction), "proba": proba}
+#    return json.dumps(response)
+    return {"prediction": int(prediction)}
