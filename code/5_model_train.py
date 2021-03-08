@@ -63,9 +63,6 @@ X = cancelled_flights[
         "OP_CARRIER",
         "ORIGIN",
         "DEST",
-        "CRS_DEP_TIME",
-        "CRS_ELAPSED_TIME",
-        "DISTANCE",
         "WEEK",
         "HOUR",
     ]

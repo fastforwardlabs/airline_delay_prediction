@@ -38,12 +38,12 @@
 #
 # ###########################################################################
 
+import numpy as np
 import pandas as pd
 import cdsw
-
-# args = {"feature" : "US,DCA,BOS,1630,81,399,1,16"}
-
 from joblib import dump, load
+
+# args = {"feature" : "US,DCA,BOS,1,16"}
 
 ct = load("models/ct.joblib")
 pipe = load("models/pipe.joblib")
@@ -54,17 +54,12 @@ def predict_cancelled(args):
     inputs = args["feature"].split(",")
     inputs[3] = int(inputs[3])
     inputs[4] = int(inputs[4])
-    inputs[5] = int(inputs[5])
-    inputs[6] = int(inputs[6])
-    inputs[7] = int(inputs[7])
+
 
     input_cols = [
         "OP_CARRIER",
         "ORIGIN",
         "DEST",
-        "CRS_DEP_TIME",
-        "CRS_ELAPSED_TIME",
-        "DISTANCE",
         "WEEK",
         "HOUR",
     ]
@@ -72,8 +67,13 @@ def predict_cancelled(args):
 
     input_transformed = ct.transform(input_df)
 
-    prediction = pipe.predict(input_transformed)
+    probas = pipe.predict_proba(input_transformed)
+    prediction = np.argmax(probas)
+    proba = probas[prediction]
+    
+    
     cdsw.track_metric("input_data", args)
-    cdsw.track_metric("prediction", int(prediction[0]))
+    cdsw.track_metric("prediction", int(prediction))
+    cdsw.track_metric("proba", float(proba))
 
-    return {"prediction": int(prediction[0])}
+    return {"prediction": int(prediction), "proba": float(proba)}
