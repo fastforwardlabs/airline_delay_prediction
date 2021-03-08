@@ -69,11 +69,10 @@ def predict_cancelled(args):
 
     probas = pipe.predict_proba(input_transformed)
     prediction = np.argmax(probas)
-    proba = probas[prediction]
-    
+    proba = round(probas[0][prediction], 2)
     
     cdsw.track_metric("input_data", args)
     cdsw.track_metric("prediction", int(prediction))
-    cdsw.track_metric("proba", float(proba))
+    cdsw.track_metric("proba", proba)
 
-    return {"prediction": int(prediction), "proba": float(proba)}
+    return {"prediction": int(prediction), "proba": proba}
