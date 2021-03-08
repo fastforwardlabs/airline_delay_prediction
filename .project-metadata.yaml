@@ -118,7 +118,7 @@ tasks:
     entity_label: flight_model
     comment: Build flight prediction model
     examples:
-      - request: {"feature" : "US,DCA,BOS,1630,81,399,1,16"}
+      - request: {"feature" : "US,DCA,BOS,1,16"}
         response: 1
     target_file_path: code/6_model_serve.py
     target_function_name: predict_cancelled
