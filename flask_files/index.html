@@ -92,6 +92,10 @@
             outline: none;
         }
 
+        .results {
+            margin: 40px 10px
+        }
+
         label {
             display: inline-block;
             width: 150px;
@@ -102,24 +106,25 @@
 
 <body>
     <h1>Cancelled Flight Prediction</h1>
-    <div class="bigger">Flight Info</div>
+    <div class="bigger" style="margin-bottom: 30px">Flight Info</div>
 
     <div class="frm">
         <label for="ca">Carrier:</label> <input class="fld" type="text" value="US" id="ca"><br>
         <label for="or">Origin:</label> <input class="fld" type="text" value="DCA" id="or"><br>
-        <label for="de">Destination:</label> <input class="fld" type="text" value="BOS" id="de"><br>
-        <label for="dt">Departure Time:</label> <input class="fld" type="text" value="1630" id="dt"><br>
-        <label for="fd">Flight Duration:</label> <input class="fld" type="text" value="81" id="fd"><br>
-        <label for="di">Distance:</label> <input class="fld" type="text" value="399" id="di"><br>
+        <label for="de">Destination:</label> <input class="fld" type="text" value="DFW" id="de"><br>
         <label for="we">Week:</label> <input class="fld" type="text" value="16" id="we"><br>
-        <label for="hr">Hour:</label> <input class="fld" type="text" value="16" id="hr"><br>
-        <input type="submit" class="btn" value="Will it be cancelled?" onclick="go_fetch()" style="float:left;"></input>
-        <div class="bigger" id='pred_value'>Predicted Value: </div>
+        <label for="hr">Departure Hour:</label> <input class="fld" type="text" value="10" id="hr"><br>
+
+        <div class="results">
+            <input type="submit" class="btn" value="Will it be cancelled?" onclick="go_fetch()"
+                style="float:left;"></input>
+
+            <div style="margin-left: 300px">
+                <div class="bigger" id='pred_value'>Predicted Value: </div>
+                <div class="bigger" id='proba_value'>Probability: </div>
+            </div>
+        </div>
     </div>
-
-
-
-
 
     </div>
     <script>
@@ -157,9 +162,6 @@
                     feature: d3.select('#ca').property("value") + "," +
                         d3.select('#or').property("value") + "," +
                         d3.select('#de').property("value") + "," +
-                        d3.select('#dt').property("value") + "," +
-                        d3.select('#fd').property("value") + "," +
-                        d3.select('#di').property("value") + "," +
                         d3.select('#we').property("value") + "," +
                         d3.select('#hr').property("value")
                 }
@@ -170,11 +172,12 @@
                 body: JSON.stringify(post_data), // data can be `string` or {object}!
                 headers: {
                     'Content-Type': 'application/json',
-                    //'Authorization' : 'Bearer ' + model_api_key                        
+                    //'Authorization' : 'Bearer ' + model_api_key
                 }
             })
-                .then(res => res.json())
-                .then(response => d3.select("#pred_value").text("Predicted Value: " + (response.response.prediction.prediction == 0 ? "Not Cancelled" : "Cancelled")))
+                .then(response => response.json())
+                .then(data => d3.select("#pred_value").text("Predicted Value: " + (data.response.prediction.prediction == 0 ? "Not Cancelled" : "Cancelled")) &
+                    d3.select("#proba_value").text("Probability: " + (data.response.prediction.proba)))
                 .catch(error => console.error('Error:', error));
         }
 

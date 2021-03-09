@@ -74,9 +74,8 @@ def predict_cancelled(args):
     
     cdsw.track_metric("input_data", args)
     cdsw.track_metric("prediction", int(prediction))
-    cdsw.track_metric("proba", proba)
+    cdsw.track_metric("proba", str(proba))
     
     response = {"prediction": int(prediction), "proba": str(proba)}
 
-#    return json.dumps(response)
-    return {"prediction": int(prediction)}
+    return response
