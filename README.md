@@ -17,7 +17,7 @@ The project is organized with the following folder structure:
 .
 ├── code/           # Backend scripts, and notebooks needed to create project artifacts
 ├── data/           # A post processed sample of the full dataset used for model training
-├── flask_files/    # Assets needed to support the front end application
+├── app/    # Assets needed to support the front end application
 ├── images/         # A collection of images referenced in project docs
 ├── models/         # Directory to hold trained models
 ├── cdsw-build.sh   # Shell script used to build environment for experiments and models

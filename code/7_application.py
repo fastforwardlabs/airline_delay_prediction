@@ -56,7 +56,7 @@ app = Flask(__name__, static_url_path="")
 
 @app.route("/")
 def home():
-    return "<script> window.location.href = '/flask_files/index.html'</script>"
+    return "<script> window.location.href = '/app/index.html'</script>"
 
 
 @app.route("/getkey")
@@ -67,9 +67,9 @@ def get_key():
     return {"api_key": access_key}
 
 
-@app.route("/flask_files/<path:path>")
+@app.route("/app/<path:path>")
 def send_file(path):
-    return send_from_directory("flask_files", path)
+    return send_from_directory("app", path)
 
 
 HTML(
