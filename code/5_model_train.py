@@ -42,15 +42,14 @@
 # the locally saved version if STORAGE_MODE=local) and trains an XGBoost classification model to predict
 # if a flight will be cancelled based on a selected set of input features
 
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# Note - This script simply trains an XGBoost model, but does not tune hyperparameters. In practice,
+# thoughtful consideration should be spent optimizing a model for the proper set of evaluation metrics.
+
 import os
 from joblib import dump, load
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer

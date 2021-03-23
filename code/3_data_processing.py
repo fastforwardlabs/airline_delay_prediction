@@ -74,7 +74,6 @@ def main():
 
     # Since majority of flights are not cancelled, lets create a more balanced dataset
     # by undersampling from non-cancelled flights
-
     sample_normal_flights = flight_df.filter("CANCELLED == 0").sample(
         withReplacement=False, fraction=0.03, seed=3
     )
@@ -113,7 +112,6 @@ def main():
     smaller_all_flight_data.printSchema()
 
     # Save the sampled dataset as a .csv file to the local project file system
-
     smaller_all_flight_data_pd = smaller_all_flight_data.toPandas()
     smaller_all_flight_data_pd.to_csv("data/preprocessed_flight_data.csv", index=False)
     spark.stop()
