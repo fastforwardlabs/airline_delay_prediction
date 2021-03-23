@@ -40,9 +40,7 @@
 
 ## Part 0: Bootstrap File
 # You need to at the start of the project. It will install the requirements, creates the
-# STORAGE environment variable and copy the data from
-# raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv into /datalake/data/churn of the STORAGE
-# location.
+# STORAGE environment variable and copy the data to the STORAGE location.
 
 # The STORAGE environment variable is the Cloud Storage location used by the DataLake
 # to store hive data. On AWS it will s3a://[something], on Azure it will be
