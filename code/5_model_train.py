@@ -87,7 +87,7 @@ pipe = Pipeline([("scaler", StandardScaler(with_mean=False)), ("xgbclf", xgbclf)
 pipe.fit(X_train, y_train)
 
 # create classification report
-y_pred = pipe.predict(y_test)
+y_pred = pipe.predict(X_test)
 targets = ["Not-cancelled", "Cancelled"]
 cls_report = classification_report(y_test, y_pred, target_names=targets)
 print(cls_report)
