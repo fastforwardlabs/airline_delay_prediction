@@ -490,7 +490,7 @@ function go_fetch() {
         }
     })
         .then(response => response.json())
-        .then(data => d3.select("#pred_value").text("Predicted Value: " + (data.response.prediction.prediction == 0 ? "Not Cancelled" : "Cancelled")) &
+        .then(data => d3.select("#pred_value").text("Predicted Value: " + (data.response.prediction.prediction == 0 ? "Not Canceled" : "Canceled")) &
             d3.select("#proba_value").text("Probability: " + (data.response.prediction.proba)))
         .catch(error => console.error('Error:', error));
 }
