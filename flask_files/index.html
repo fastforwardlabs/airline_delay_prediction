@@ -46,62 +46,11 @@
     <meta charset="utf-8">
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js'></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css?family=Open+Sans');
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
-        body {
-            color: white;
-            font-family: 'Open Sans', sans-serif;
-            background-image: url("sunset_germany_airport_frankfurt_aircraft_aviation_terminal_boeing-456915.jpg");
-            background-repeat: no-repeat;
-        }
-
-        .bigger {
-            font-size: 1.2em;
-            line-height: 2em;
-        }
-
-        .fld {
-            border: 1px dotted #ccc;
-            background: white;
-            font-family: monospace;
-            padding: 10px 20px;
-            font-size: 18px;
-            margin: 5px 5px 5px 0;
-            color: red;
-        }
-
-        .fld:focus {
-            background-color: lightgray;
-            outline: none;
-        }
-
-        .btn {
-            border: 1px dotted #ccc;
-            background: white;
-            font-family: monospace;
-            padding: 10px 20px;
-            font-size: 18px;
-            margin: 5px 5px 5px 0;
-            color: black;
-        }
-
-        .btn:hover {
-            background-color: lightgray;
-            outline: none;
-        }
-
-        .results {
-            margin: 40px 10px
-        }
-
-        label {
-            display: inline-block;
-            width: 150px;
-            text-align: right;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
@@ -109,11 +58,27 @@
     <div class="bigger" style="margin-bottom: 30px">Flight Info</div>
 
     <div class="frm">
-        <label for="ca">Carrier:</label> <input class="fld" type="text" value="US" id="ca"><br>
-        <label for="or">Origin:</label> <input class="fld" type="text" value="DCA" id="or"><br>
-        <label for="de">Destination:</label> <input class="fld" type="text" value="DFW" id="de"><br>
-        <label for="we">Week:</label> <input class="fld" type="text" value="16" id="we"><br>
-        <label for="hr">Departure Hour:</label> <input class="fld" type="text" value="10" id="hr"><br>
+        <div class="prow">
+            <label for='carrier'>Carrier:</label>
+            <select class="js-example-basic-single" style="width: 25em; padding-bottom: 10px;"
+                id="carrier"></select><br>
+        </div>
+        <div class="prow">
+            <label for='origin'>Origin:</label>
+            <select class="js-example-basic-single" style="width: 25em" id="origin"></select><br>
+        </div>
+        <div class="prow">
+            <label for='destination'>Destination:</label>
+            <select class="js-example-basic-single" style="width: 25em" id="destination"></select><br>
+        </div>
+        <div class="prow">
+            <label for='week'>Week:</label>
+            <select class="js-example-basic-single" style="width: 25em" id="week"></select><br>
+        </div>
+        <div class="prow">
+            <label for='departure'>Departure Hour:</label>
+            <select class="js-example-basic-single" style="width: 25em" id="departure"></select><br>
+        </div>
 
         <div class="results">
             <input type="submit" class="btn" value="Will it be cancelled?" onclick="go_fetch()"
@@ -127,59 +92,7 @@
     </div>
 
     </div>
-    <script>
 
-        var url = window.location.origin.substr(0, window.location.origin.indexOf(":") + 1) + "//" + "modelservice." + window.location.origin.substr(window.location.origin.indexOf(".") + 1) + '/model'
+    <script src="js/script.js"></script>
 
-        function get_key() {
-            fetch('/getkey')
-                .then(
-                    function (response) {
-                        if (response.status !== 200) {
-                            console.log('Looks like there was a problem. Status Code: ' +
-                                response.status);
-                            return;
-                        }
-
-                        // Examine the text in the response
-                        response.json().then(function (data) {
-                            console.log("api key. is", data)
-                            api_key = data.api_key
-
-                        });
-                    }
-                )
-                .catch(function (err) {
-                    console.log('Fetch Error :-S', err);
-                });
-        }
-        get_key()
-
-        function go_fetch() {
-            var post_data = {
-                accessKey: api_key,
-                request: {
-                    feature: d3.select('#ca').property("value") + "," +
-                        d3.select('#or').property("value") + "," +
-                        d3.select('#de').property("value") + "," +
-                        d3.select('#we').property("value") + "," +
-                        d3.select('#hr').property("value")
-                }
-            };
-
-            fetch(url, {
-                method: 'POST', // or 'PUT'
-                body: JSON.stringify(post_data), // data can be `string` or {object}!
-                headers: {
-                    'Content-Type': 'application/json',
-                    //'Authorization' : 'Bearer ' + model_api_key
-                }
-            })
-                .then(response => response.json())
-                .then(data => d3.select("#pred_value").text("Predicted Value: " + (data.response.prediction.prediction == 0 ? "Not Cancelled" : "Cancelled")) &
-                    d3.select("#proba_value").text("Probability: " + (data.response.prediction.proba)))
-                .catch(error => console.error('Error:', error));
-        }
-
-    </script>
 </body>
