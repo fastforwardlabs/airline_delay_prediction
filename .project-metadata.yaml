@@ -1,5 +1,5 @@
-name: Flight Demo
-description: Predicting flight delays
+name: Cancelled Flight Prediction
+description: Predicting flight cancellations
 author: Cloudera Inc.
 specification_version: 1.0
 prototype_version: 1.0
@@ -127,7 +127,7 @@ tasks:
       TASK_TYPE: CREATE/BUILD/DEPLOY_MODEL
 
   - type: deploy_model
-    name: telco_churn_model
+    name: flight_prediction_model
     entity_label: flight_model
     cpu: 1
     gpu: 0
@@ -136,7 +136,7 @@ tasks:
 
   - type: start_application
     name: Application to serve flight prediction front end app UI
-    subdomain: churn
+    subdomain: flight
     script: code/7_application.py
     environment_variables:
       TASK_TYPE: START_APPLICATION
