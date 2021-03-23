@@ -1,4 +1,4 @@
-# Airline Delay Prediction
+# Cancelled Flight Prediction
 This project is a Cloudera Machine Learning ([CML](https://www.cloudera.com/products/machine-learning.html)) **Applied Machine Learning Prototype** and has all the code and data needed to deploy an end-to-end machine learning project on a running CML instance.
 
 ![app](images/app.png)
@@ -26,7 +26,7 @@ The project is organized with the following folder structure:
 └── requirements.txt
 ```
 
-By following the notebooks, scripts, and documentation in the `code` directory, you will understand how to perform similar classification tasks on CML, as well as how to use the platform's major features to your advantage. These features include:
+By following the notebooks, scripts, and documentation in the `code` directory, you will understand how to perform similar tasks on CML, as well as how to use the platform's major features to your advantage. These features include:
 
 - Data ingestion, cleaning, and processing with Spark
 - Hive table creation and querying
@@ -41,8 +41,8 @@ We will focus our attention on working within CML, using all it has to offer, wh
 There are three ways to launch the this prototype on CML:
 
 1. **From Prototype Catalog** - Navigate to the Prototype Catalog on a CML workspace, select the "Airline Delay Prediction" tile, click "Launch as Project", click "Configure Project"
-2. **As ML Prototype** - In a CML workspace, click "New Project", add a Project Name, select "ML Prototype" as the Initial Setup option, copy in the [repo URL](https://github.com/cloudera/CML_AMP_Airline_Delay_Prediction), click "Create Project", click "Configure Project"
+2. **As ML Prototype** - In a CML workspace, click "New Project", add a Project Name, select "ML Prototype" as the Initial Setup option, copy in the [repo URL](https://github.com/cloudera/CML_AMP_Cancelled_Flight_Prediction), click "Create Project", click "Configure Project"
 
-3. **Manual Setup** - In a CML workspace, click "New Project", add a Project Name, select "Git" as the Initial Setup option, copy in the [repo URL](https://github.com/cloudera/CML_AMP_Airline_Delay_Prediction), click "Create Project". Then, follow the steps listed [in this document](code/README.md) in order
+3. **Manual Setup** - In a CML workspace, click "New Project", add a Project Name, select "Git" as the Initial Setup option, copy in the [repo URL](CML_AMP_Cancelled_Flight_Prediction), click "Create Project". Then, follow the steps listed [in this document](code/README.md) in order
 
 If you deploy this project as an Applied ML Prototype (AMP) (options 1 or 2 above), you will need to specify whether to run the project with `STORAGE_MODE` set to `local` or `external`. Running in external mode requires having external storage configured on your CML workspace and triggers the project to ingest, process, and store ~20GB of raw data using Spark. Running in local mode will bypass the data ingestion and manipulation steps by using the `data/preprocessed_flight_data.tgz` file to train a model and deploy the application. While running the project as an AMP will install, setup, and build all project artifacts for you, it may still be instructive to review the documentation and files in the [code](code/) directory.
