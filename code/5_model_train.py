@@ -53,10 +53,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.metrics import classification_report
 
 cancelled_flights = pd.read_csv("data/preprocessed_flight_data.csv")
 cancelled_flights = cancelled_flights.dropna()
 
+# select features and target
 X = cancelled_flights[
     [
         "OP_CARRIER",
@@ -69,21 +71,26 @@ X = cancelled_flights[
 
 y = cancelled_flights[["CANCELLED"]]
 
+# one-hot encode categorical columns
 categorical_cols = ["OP_CARRIER", "ORIGIN", "DEST"]
 ct = ColumnTransformer(
     [("le", OneHotEncoder(), categorical_cols)], remainder="passthrough"
 )
-
 X_trans = ct.fit_transform(X)
+
+# train/test split
 X_train, X_test, y_train, y_test = train_test_split(X_trans, y, random_state=42)
 
+# fit a model
 xgbclf = xgb.XGBClassifier()
 pipe = Pipeline([("scaler", StandardScaler(with_mean=False)), ("xgbclf", xgbclf)])
-pipe.fit(X_trans, y)
+pipe.fit(X_train, y_train)
 
-score = pipe.score(X_trans, y)
-print("train", score)
+# create classification report
+targets = ["Not-cancelled", "Cancelled"]
+cls_report = classification_report(y_test, y_pred, target_names=targets)
+print(cls_report)
 
-os.mkdir("models/")
+# save model
 dump(pipe, "models/pipe.joblib")
 dump(ct, "models/ct.joblib")
