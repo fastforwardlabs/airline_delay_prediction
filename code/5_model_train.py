@@ -93,6 +93,6 @@ cls_report = classification_report(y_test, y_pred, target_names=targets)
 print(cls_report)
 
 # save model
-os.makedirs("models")
+os.makedirs("models", exist_ok=True)
 dump(pipe, "models/pipe.joblib")
 dump(ct, "models/ct.joblib")
